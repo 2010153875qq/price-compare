@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>一键比价 · 京东 淘宝 拼多多 1688 美团 哪家最便宜</title>
+<meta name="description" content="输入商品名，一键打开京东、淘宝、拼多多、1688、美团的搜索结果，填入价格自动算出含运费、优惠后的最低价。开源免费，可下载部署。">
+<meta name="theme-color" content="#ff5a1f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="购物比价">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="logo">🏷️ 一键比价</div>
+      <button class="ghost" id="btnSettings" title="设置">⚙️ 设置</button>
+    </div>
+    <h1>买东西前，<span>先比一比</span></h1>
+    <p class="sub">京东 · 淘宝 · 拼多多 · 1688 · 美团，哪家最便宜一眼看出</p>
+    <form id="searchForm" class="search" autocomplete="off">
+      <input id="kw" type="search" placeholder="输入商品名，如：iPhone 16 256G、维达抽纸、罗技 G304" maxlength="80" required>
+      <button type="submit" id="btnSearch">比价</button>
+    </form>
+    <div class="chips" id="hotChips"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="platformSection" class="hidden">
+    <div class="sec-head">
+      <h2>① 去各平台看价格 <small id="kwLabel"></small></h2>
+      <div class="sec-actions">
+        <button class="primary" id="btnOpenAll">全部打开</button>
+        <button class="ghost" id="btnCopyKw">复制关键词</button>
+      </div>
+    </div>
+    <div class="grid" id="platformGrid"></div>
+    <p class="hint" id="liveHint"></p>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>② 填价格，自动算最低价</h2>
+      <div class="sec-actions">
+        <button class="ghost" id="btnAddRow">＋ 加一行</button>
+        <button class="ghost" id="btnSaveCmp">保存这次比价</button>
+        <button class="ghost" id="btnCsv">导出表格</button>
+        <button class="ghost danger" id="btnClear">清空</button>
+      </div>
+    </div>
+    <div class="best" id="bestBox">还没有价格，在各平台看到价格后填到下面（到手价 = 单价 × 数量 + 运费 − 优惠）。</div>
+    <div class="table-wrap">
+      <table id="cmpTable">
+        <thead><tr>
+          <th>平台</th><th>商品 / 店铺</th><th class="num">单价¥</th><th class="num">数量</th><th class="num">运费¥</th><th class="num">优惠¥</th><th class="num sortable" id="thFinal">到手价¥ ⇅</th><th></th>
+        </tr></thead>
+        <tbody id="cmpBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>③ 历史记录</h2>
+      <div class="sec-actions"><button class="ghost danger" id="btnClearHist">清空历史</button></div>
+    </div>
+    <div class="hist" id="histBox"></div>
+  </section>
+
+  <section class="faq">
+    <h2>说明</h2>
+    <ul>
+      <li>本站<b>不卖货、不代购、不收款</b>，只帮你打开各平台的搜索页、帮你算账。下单请在官方 App / 网站完成。</li>
+      <li>各平台网页版常需要登录才显示价格（尤其拼多多、美团），手机上点「App」按钮可直接唤起 App 搜索。</li>
+      <li>想要「自动抓价格」：部署 <code>server/</code> 里的代理，并填入京东联盟 / 淘宝联盟 / 多多进宝的 API Key，然后在「设置」里填代理地址。</li>
+      <li>所有数据只存在你自己的浏览器里（localStorage），不上传。</li>
+    </ul>
+  </section>
+</main>
+
+<footer class="wrap foot">开源免费 · <a href="price-compare.zip" download>下载网站（zip）</a> · <a href="https://github.com/2010153875qq/price-compare" target="_blank" rel="noopener">GitHub 源码</a> · <a href="https://zhourunzheng.com.cn" target="_blank" rel="noopener">zhourunzheng.com.cn</a></footer>
+
+<dialog id="dlgSettings">
+  <form method="dialog">
+    <h3>设置</h3>
+    <label>价格接口代理地址（可选）
+      <input id="cfgProxy" placeholder="例如 https://price-proxy.你的名字.workers.dev">
+    </label>
+    <p class="hint">留空 = 只用手动比价。部署方法见 README 和 server/README.md。代理在没有 API Key 时返回「演示数据」。</p>
+    <label class="row"><input type="checkbox" id="cfgPreferApp"> 手机上优先唤起 App</label>
+    <div class="dlg-actions"><button value="cancel" class="ghost">取消</button><button value="ok" class="primary" id="btnSaveCfg">保存</button></div>
+  </form>
+</dialog>
+<div id="iosHint" class="ios-hint hidden" role="status">
+  <button type="button" class="ios-hint-x" id="iosHintClose" aria-label="关闭">×</button>
+  <p>用 Safari 打开本页，点底栏「分享」按钮，再选「添加到主屏幕」，就能像 App 一样打开，没网也能用。</p>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="js/adapters/base.js"></script>
+<script src="js/adapters/jd.js"></script>
+<script src="js/adapters/taobao.js"></script>
+<script src="js/adapters/pdd.js"></script>
+<script src="js/adapters/alibaba1688.js"></script>
+<script src="js/adapters/meituan.js"></script>
+<script src="js/app.js"></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>
