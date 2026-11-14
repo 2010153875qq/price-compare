@@ -100,7 +100,7 @@ function mock(platform, q) {
 async function handle(url, env) {
   const cors = { 'access-control-allow-origin': env.ALLOW_ORIGIN || '*', 'content-type': 'application/json; charset=utf-8' };
   const out = (o, s = 200) => ({ status: s, headers: cors, body: JSON.stringify(o) });
-  if (url.pathname === '/api/health') return out({ ok: true, configured: Object.fromEntries(Object.entries(PROVIDERS).map(([k, v]) => [k, v.keys.every(x => env[x])])) });
+  if (url.pathname === '/api/health') return out({ ok: true, configured: Object.fromEntries(Object.entries(PROVIDERS).map(([k, v]) => [k, Boolean(v.fn) && v.keys.every(x => Boolean(env[x]))])) });
   if (url.pathname !== '/api/search') return out({ ok: false, error: 'not found' }, 404);
   const platform = url.searchParams.get('platform'); const q = (url.searchParams.get('q') || '').trim().slice(0, 60);
   const P = PROVIDERS[platform];
